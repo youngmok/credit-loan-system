@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.loan.core.mapper.CreditAssessmentMapper">
+
+    <resultMap id="creditAssessmentResultMap" type="CreditAssessment">
+        <id property="id" column="id"/>
+        <result property="applicationId" column="application_id"/>
+        <result property="creditScore" column="credit_score"/>
+        <result property="creditGrade" column="credit_grade"/>
+        <result property="dsrRatio" column="dsr_ratio"/>
+        <result property="approvedRate" column="approved_rate"/>
+        <result property="approvedAmount" column="approved_amount"/>
+        <result property="approvedTermMonths" column="approved_term_months"/>
+        <result property="result" column="result"/>
+        <result property="rejectionReason" column="rejection_reason"/>
+        <result property="assessedAt" column="assessed_at"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="applicationNo" column="application_no"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="CreditAssessment" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO credit_assessments (application_id, credit_score, credit_grade, dsr_ratio,
+                                         approved_rate, approved_amount, approved_term_months,
+                                         result, rejection_reason, assessed_at, created_at)
+        VALUES (#{applicationId}, #{creditScore}, #{creditGrade}, #{dsrRatio},
+                #{approvedRate}, #{approvedAmount}, #{approvedTermMonths},
+                #{result}, #{rejectionReason}, #{assessedAt}, #{createdAt})
+    </insert>
+
+    <select id="findByApplicationId" parameterType="long" resultMap="creditAssessmentResultMap">
+        SELECT ca.*, la.application_no
+        FROM credit_assessments ca
+        LEFT JOIN loan_applications la ON ca.application_id = la.id
+        WHERE ca.application_id = #{applicationId}
+    </select>
+
+</mapper>

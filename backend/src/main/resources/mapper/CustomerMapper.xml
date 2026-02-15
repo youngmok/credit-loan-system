@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.loan.core.mapper.CustomerMapper">
+
+    <resultMap id="customerResultMap" type="Customer">
+        <id property="id" column="id"/>
+        <result property="customerNo" column="customer_no"/>
+        <result property="name" column="name"/>
+        <result property="email" column="email"/>
+        <result property="phone" column="phone"/>
+        <result property="annualIncome" column="annual_income"/>
+        <result property="employmentType" column="employment_type"/>
+        <result property="company" column="company"/>
+        <result property="birthDate" column="birth_date"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="Customer" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO customers (customer_no, name, email, phone, annual_income, employment_type, company, birth_date, created_at, updated_at)
+        VALUES (#{customerNo}, #{name}, #{email}, #{phone}, #{annualIncome}, #{employmentType}, #{company}, #{birthDate}, #{createdAt}, #{updatedAt})
+    </insert>
+
+    <select id="findById" parameterType="long" resultMap="customerResultMap">
+        SELECT * FROM customers WHERE id = #{id}
+    </select>
+
+    <select id="findByCustomerNo" parameterType="string" resultMap="customerResultMap">
+        SELECT * FROM customers WHERE customer_no = #{customerNo}
+    </select>
+
+    <select id="findAll" resultMap="customerResultMap">
+        SELECT * FROM customers ORDER BY created_at DESC
+    </select>
+
+    <update id="update" parameterType="Customer">
+        UPDATE customers
+        SET name = #{name},
+            email = #{email},
+            phone = #{phone},
+            annual_income = #{annualIncome},
+            employment_type = #{employmentType},
+            company = #{company},
+            birth_date = #{birthDate},
+            updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+</mapper>

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.loan.core.mapper.LoanContractMapper">
+
+    <resultMap id="loanContractResultMap" type="LoanContract">
+        <id property="id" column="id"/>
+        <result property="contractNo" column="contract_no"/>
+        <result property="applicationId" column="application_id"/>
+        <result property="customerId" column="customer_id"/>
+        <result property="principalAmount" column="principal_amount"/>
+        <result property="interestRate" column="interest_rate"/>
+        <result property="termMonths" column="term_months"/>
+        <result property="repaymentMethod" column="repayment_method"/>
+        <result property="monthlyPayment" column="monthly_payment"/>
+        <result property="outstandingBalance" column="outstanding_balance"/>
+        <result property="totalInterestPaid" column="total_interest_paid"/>
+        <result property="status" column="status"/>
+        <result property="startDate" column="start_date"/>
+        <result property="endDate" column="end_date"/>
+        <result property="executedAt" column="executed_at"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+        <result property="customerName" column="customer_name"/>
+        <result property="applicationNo" column="application_no"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="LoanContract" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO loan_contracts (contract_no, application_id, customer_id, principal_amount, interest_rate,
+                                     term_months, repayment_method, monthly_payment, outstanding_balance,
+                                     total_interest_paid, status, start_date, end_date, executed_at,
+                                     created_at, updated_at)
+        VALUES (#{contractNo}, #{applicationId}, #{customerId}, #{principalAmount}, #{interestRate},
+                #{termMonths}, #{repaymentMethod}, #{monthlyPayment}, #{outstandingBalance},
+                #{totalInterestPaid}, #{status}, #{startDate}, #{endDate}, #{executedAt},
+                #{createdAt}, #{updatedAt})
+    </insert>
+
+    <select id="findById" parameterType="long" resultMap="loanContractResultMap">
+        SELECT lc.*, c.name AS customer_name, la.application_no
+        FROM loan_contracts lc
+        LEFT JOIN customers c ON lc.customer_id = c.id
+        LEFT JOIN loan_applications la ON lc.application_id = la.id
+        WHERE lc.id = #{id}
+    </select>
+
+    <select id="findByContractNo" parameterType="string" resultMap="loanContractResultMap">
+        SELECT lc.*, c.name AS customer_name, la.application_no
+        FROM loan_contracts lc
+        LEFT JOIN customers c ON lc.customer_id = c.id
+        LEFT JOIN loan_applications la ON lc.application_id = la.id
+        WHERE lc.contract_no = #{contractNo}
+    </select>
+
+    <select id="findByCustomerId" parameterType="long" resultMap="loanContractResultMap">
+        SELECT lc.*, c.name AS customer_name, la.application_no
+        FROM loan_contracts lc
+        LEFT JOIN customers c ON lc.customer_id = c.id
+        LEFT JOIN loan_applications la ON lc.application_id = la.id
+        WHERE lc.customer_id = #{customerId}
+        ORDER BY lc.created_at DESC
+    </select>
+
+    <select id="findAll" resultMap="loanContractResultMap">
+        SELECT lc.*, c.name AS customer_name, la.application_no
+        FROM loan_contracts lc
+        LEFT JOIN customers c ON lc.customer_id = c.id
+        LEFT JOIN loan_applications la ON lc.application_id = la.id
+        ORDER BY lc.created_at DESC
+    </select>
+
+    <update id="updateStatus">
+        UPDATE loan_contracts
+        SET status = #{status}, updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateBalance">
+        UPDATE loan_contracts
+        SET outstanding_balance = #{outstandingBalance},
+            total_interest_paid = #{totalInterestPaid},
+            updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <select id="countByStatus" parameterType="string" resultType="int">
+        SELECT COUNT(*) FROM loan_contracts WHERE status = #{status}
+    </select>
+
+    <select id="sumOutstandingBalance" parameterType="long" resultType="java.math.BigDecimal">
+        SELECT COALESCE(SUM(outstanding_balance), 0) FROM loan_contracts
+        <where>
+            <if test="customerId != null">
+                customer_id = #{customerId}
+            </if>
+        </where>
+    </select>
+
+</mapper>

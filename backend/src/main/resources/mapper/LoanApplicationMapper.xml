@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.loan.core.mapper.LoanApplicationMapper">
+
+    <resultMap id="loanApplicationResultMap" type="LoanApplication">
+        <id property="id" column="id"/>
+        <result property="applicationNo" column="application_no"/>
+        <result property="customerId" column="customer_id"/>
+        <result property="requestedAmount" column="requested_amount"/>
+        <result property="requestedTermMonths" column="requested_term_months"/>
+        <result property="repaymentMethod" column="repayment_method"/>
+        <result property="existingLoanAmount" column="existing_loan_amount"/>
+        <result property="purpose" column="purpose"/>
+        <result property="status" column="status"/>
+        <result property="appliedAt" column="applied_at"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <resultMap id="loanApplicationWithCustomerResultMap" type="LoanApplication" extends="loanApplicationResultMap">
+        <association property="customer" javaType="Customer">
+            <id property="id" column="c_id"/>
+            <result property="customerNo" column="c_customer_no"/>
+            <result property="name" column="c_name"/>
+            <result property="email" column="c_email"/>
+            <result property="phone" column="c_phone"/>
+            <result property="annualIncome" column="c_annual_income"/>
+            <result property="employmentType" column="c_employment_type"/>
+        </association>
+    </resultMap>
+
+    <insert id="insert" parameterType="LoanApplication" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO loan_applications (application_no, customer_id, requested_amount, requested_term_months,
+                                        repayment_method, existing_loan_amount, purpose, status, applied_at,
+                                        created_at, updated_at)
+        VALUES (#{applicationNo}, #{customerId}, #{requestedAmount}, #{requestedTermMonths},
+                #{repaymentMethod}, #{existingLoanAmount}, #{purpose}, #{status}, #{appliedAt},
+                #{createdAt}, #{updatedAt})
+    </insert>
+
+    <select id="findById" parameterType="long" resultMap="loanApplicationWithCustomerResultMap">
+        SELECT la.*,
+               c.id AS c_id, c.customer_no AS c_customer_no, c.name AS c_name,
+               c.email AS c_email, c.phone AS c_phone,
+               c.annual_income AS c_annual_income, c.employment_type AS c_employment_type
+        FROM loan_applications la
+        LEFT JOIN customers c ON la.customer_id = c.id
+        WHERE la.id = #{id}
+    </select>
+
+    <select id="findByApplicationNo" parameterType="string" resultMap="loanApplicationWithCustomerResultMap">
+        SELECT la.*,
+               c.id AS c_id, c.customer_no AS c_customer_no, c.name AS c_name,
+               c.email AS c_email, c.phone AS c_phone,
+               c.annual_income AS c_annual_income, c.employment_type AS c_employment_type
+        FROM loan_applications la
+        LEFT JOIN customers c ON la.customer_id = c.id
+        WHERE la.application_no = #{applicationNo}
+    </select>
+
+    <select id="findByCustomerId" parameterType="long" resultMap="loanApplicationWithCustomerResultMap">
+        SELECT la.*,
+               c.id AS c_id, c.customer_no AS c_customer_no, c.name AS c_name,
+               c.email AS c_email, c.phone AS c_phone,
+               c.annual_income AS c_annual_income, c.employment_type AS c_employment_type
+        FROM loan_applications la
+        LEFT JOIN customers c ON la.customer_id = c.id
+        WHERE la.customer_id = #{customerId}
+        ORDER BY la.created_at DESC
+    </select>
+
+    <select id="findAll" resultMap="loanApplicationWithCustomerResultMap">
+        SELECT la.*,
+               c.id AS c_id, c.customer_no AS c_customer_no, c.name AS c_name,
+               c.email AS c_email, c.phone AS c_phone,
+               c.annual_income AS c_annual_income, c.employment_type AS c_employment_type
+        FROM loan_applications la
+        LEFT JOIN customers c ON la.customer_id = c.id
+        ORDER BY la.created_at DESC
+    </select>
+
+    <update id="updateStatus">
+        UPDATE loan_applications
+        SET status = #{status}, updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <update id="update" parameterType="LoanApplication">
+        UPDATE loan_applications
+        SET requested_amount = #{requestedAmount},
+            requested_term_months = #{requestedTermMonths},
+            repayment_method = #{repaymentMethod},
+            existing_loan_amount = #{existingLoanAmount},
+            purpose = #{purpose},
+            status = #{status},
+            applied_at = #{appliedAt},
+            updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+</mapper>

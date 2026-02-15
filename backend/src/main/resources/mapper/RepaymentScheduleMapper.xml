@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.loan.core.mapper.RepaymentScheduleMapper">
+
+    <resultMap id="repaymentScheduleResultMap" type="RepaymentSchedule">
+        <id property="id" column="id"/>
+        <result property="contractId" column="contract_id"/>
+        <result property="installmentNo" column="installment_no"/>
+        <result property="dueDate" column="due_date"/>
+        <result property="principalAmount" column="principal_amount"/>
+        <result property="interestAmount" column="interest_amount"/>
+        <result property="totalAmount" column="total_amount"/>
+        <result property="outstandingBalanceAfter" column="outstanding_balance_after"/>
+        <result property="status" column="status"/>
+        <result property="paidDate" column="paid_date"/>
+        <result property="paidAmount" column="paid_amount"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+
+    <insert id="insertBatch" parameterType="list">
+        INSERT INTO repayment_schedules (contract_id, installment_no, due_date, principal_amount,
+                                          interest_amount, total_amount, outstanding_balance_after,
+                                          status, created_at, updated_at)
+        VALUES
+        <foreach collection="list" item="item" separator=",">
+            (#{item.contractId}, #{item.installmentNo}, #{item.dueDate}, #{item.principalAmount},
+             #{item.interestAmount}, #{item.totalAmount}, #{item.outstandingBalanceAfter},
+             #{item.status}, #{item.createdAt}, #{item.updatedAt})
+        </foreach>
+    </insert>
+
+    <select id="findByContractId" parameterType="long" resultMap="repaymentScheduleResultMap">
+        SELECT * FROM repayment_schedules
+        WHERE contract_id = #{contractId}
+        ORDER BY installment_no
+    </select>
+
+    <select id="findById" parameterType="long" resultMap="repaymentScheduleResultMap">
+        SELECT * FROM repayment_schedules WHERE id = #{id}
+    </select>
+
+    <update id="updateStatus">
+        UPDATE repayment_schedules
+        SET status = #{status},
+            paid_date = #{paidDate},
+            paid_amount = #{paidAmount},
+            updated_at = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <select id="findOverdueSchedules" resultMap="repaymentScheduleResultMap">
+        SELECT * FROM repayment_schedules
+        WHERE status = 'SCHEDULED'
+          AND due_date &lt; #{date}
+        ORDER BY due_date
+    </select>
+
+</mapper>

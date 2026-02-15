@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.loan.core.mapper.StatusHistoryMapper">
+
+    <resultMap id="statusHistoryResultMap" type="StatusHistory">
+        <id property="id" column="id"/>
+        <result property="entityType" column="entity_type"/>
+        <result property="entityId" column="entity_id"/>
+        <result property="fromStatus" column="from_status"/>
+        <result property="toStatus" column="to_status"/>
+        <result property="changedBy" column="changed_by"/>
+        <result property="reason" column="reason"/>
+        <result property="changedAt" column="changed_at"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="StatusHistory" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO status_histories (entity_type, entity_id, from_status, to_status, changed_by, reason, changed_at)
+        VALUES (#{entityType}, #{entityId}, #{fromStatus}, #{toStatus}, #{changedBy}, #{reason}, #{changedAt})
+    </insert>
+
+    <select id="findByEntity" resultMap="statusHistoryResultMap">
+        SELECT * FROM status_histories
+        WHERE entity_type = #{entityType}
+          AND entity_id = #{entityId}
+        ORDER BY changed_at
+    </select>
+
+</mapper>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.loan.core.mapper.LoanTransactionMapper">
+
+    <resultMap id="loanTransactionResultMap" type="LoanTransaction">
+        <id property="id" column="id"/>
+        <result property="transactionNo" column="transaction_no"/>
+        <result property="contractId" column="contract_id"/>
+        <result property="type" column="type"/>
+        <result property="amount" column="amount"/>
+        <result property="balanceAfter" column="balance_after"/>
+        <result property="description" column="description"/>
+        <result property="transactedAt" column="transacted_at"/>
+        <result property="createdAt" column="created_at"/>
+    </resultMap>
+
+    <insert id="insert" parameterType="LoanTransaction" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO loan_transactions (transaction_no, contract_id, type, amount, balance_after,
+                                        description, transacted_at, created_at)
+        VALUES (#{transactionNo}, #{contractId}, #{type}, #{amount}, #{balanceAfter},
+                #{description}, #{transactedAt}, #{createdAt})
+    </insert>
+
+    <select id="findByContractId" parameterType="long" resultMap="loanTransactionResultMap">
+        SELECT * FROM loan_transactions
+        WHERE contract_id = #{contractId}
+        ORDER BY transacted_at DESC
+    </select>
+
+</mapper>
