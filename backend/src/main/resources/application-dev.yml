@@ -1,0 +1,33 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: credit-loan-system
+  datasource:
+    url: jdbc:h2:mem:credit_loan;DB_CLOSE_DELAY=-1;MODE=PostgreSQL
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  sql:
+    init:
+      mode: always
+      schema-locations: classpath:schema-h2.sql
+      data-locations: classpath:data-h2.sql
+      encoding: UTF-8
+      continue-on-error: true
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  type-aliases-package: com.loan.core.domain.entity
+  configuration:
+    map-underscore-to-camel-case: true
+
+logging:
+  level:
+    com.loan.core: DEBUG
+    org.springframework.web: INFO

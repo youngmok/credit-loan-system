@@ -18,6 +18,7 @@ import com.loan.core.mapper.StatusHistoryMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -28,6 +29,7 @@ import java.util.List;
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class CreditAssessmentService {
 
     private final CreditAssessmentMapper assessmentMapper;
@@ -42,6 +44,7 @@ public class CreditAssessmentService {
     private static final int MIN_APPROVAL_SCORE = 500;
     private static final BigDecimal MAX_DSR_RATIO = new BigDecimal("40");
 
+    @Transactional
     public CreditAssessment assessApplication(Long applicationId) {
         log.info("Starting credit assessment: applicationId={}", applicationId);
 

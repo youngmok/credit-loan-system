@@ -9,17 +9,20 @@ import com.loan.core.mapper.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.UUID;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class LoanContractService {
 
     private final LoanContractMapper contractMapper;
@@ -29,8 +32,9 @@ public class LoanContractService {
     private final RepaymentScheduleMapper scheduleMapper;
     private final LoanTransactionMapper transactionMapper;
     private final StatusHistoryMapper statusHistoryMapper;
-    private static final AtomicInteger CONTRACT_SEQ = new AtomicInteger(0);
+    private static final AtomicLong CONTRACT_SEQ = new AtomicLong(System.nanoTime() % 10000);
 
+    @Transactional
     public LoanContract executeLoan(Long applicationId) {
         log.info("Executing loan: applicationId={}", applicationId);
 
@@ -174,13 +178,13 @@ public class LoanContractService {
 
     private String generateContractNo() {
         String datePart = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        int seq = CONTRACT_SEQ.incrementAndGet() % 10000;
+        long seq = CONTRACT_SEQ.incrementAndGet() % 10000;
         return String.format("CNT%s%04d", datePart, seq);
     }
 
     private String generateTransactionNo() {
-        long timestamp = System.currentTimeMillis();
-        int random = (int) (Math.random() * 10000);
-        return String.format("TXN%d%04d", timestamp, random);
+        String datePart = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String uuid = UUID.randomUUID().toString().replace("-", "").substring(0, 10).toUpperCase();
+        return String.format("TXN%s%s", datePart, uuid);
     }
 }

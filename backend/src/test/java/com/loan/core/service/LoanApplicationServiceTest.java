@@ -64,7 +64,6 @@ class LoanApplicationServiceTest {
         LoanApplication app = LoanApplication.builder()
                 .id(1L).status(LoanStatus.DRAFT).build();
         when(applicationMapper.findById(1L)).thenReturn(app);
-        doNothing().when(applicationMapper).updateStatus(any(), any());
         doNothing().when(applicationMapper).update(any());
         doNothing().when(statusHistoryMapper).insert(any());
 
@@ -72,6 +71,8 @@ class LoanApplicationServiceTest {
 
         assertEquals(LoanStatus.APPLIED, result.getStatus());
         assertNotNull(result.getAppliedAt());
+        verify(applicationMapper, never()).updateStatus(any(), any());
+        verify(applicationMapper).update(any());
     }
 
     @Test

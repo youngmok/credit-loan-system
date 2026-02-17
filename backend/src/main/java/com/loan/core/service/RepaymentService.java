@@ -16,15 +16,19 @@ import com.loan.core.mapper.StatusHistoryMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class RepaymentService {
 
     private final LoanContractMapper contractMapper;
@@ -32,6 +36,7 @@ public class RepaymentService {
     private final LoanTransactionMapper transactionMapper;
     private final StatusHistoryMapper statusHistoryMapper;
 
+    @Transactional
     public LoanTransaction repay(Long contractId, BigDecimal amount) {
         log.info("Processing repayment: contractId={}, amount={}", contractId, amount);
 
@@ -91,6 +96,7 @@ public class RepaymentService {
         return transaction;
     }
 
+    @Transactional
     public LoanTransaction earlyRepay(Long contractId) {
         log.info("Processing early repayment: contractId={}", contractId);
 
@@ -106,19 +112,16 @@ public class RepaymentService {
 
         BigDecimal repayAmount = contract.getOutstandingBalance();
 
-        // 2. Mark all remaining schedules as PAID
+        // 2. Mark all remaining schedules as PAID (only principal portion, no future interest)
         List<RepaymentSchedule> schedules = scheduleMapper.findByContractId(contractId);
-        BigDecimal totalInterestOnRemaining = BigDecimal.ZERO;
         for (RepaymentSchedule schedule : schedules) {
             if (schedule.getStatus() == RepaymentStatus.SCHEDULED) {
-                scheduleMapper.updateStatus(schedule.getId(), RepaymentStatus.PAID.name(), LocalDate.now(), schedule.getTotalAmount());
-                totalInterestOnRemaining = totalInterestOnRemaining.add(schedule.getInterestAmount());
+                scheduleMapper.updateStatus(schedule.getId(), RepaymentStatus.PAID.name(), LocalDate.now(), schedule.getPrincipalAmount());
             }
         }
 
-        // 3. Update contract: outstanding = 0
-        BigDecimal newTotalInterestPaid = contract.getTotalInterestPaid().add(totalInterestOnRemaining);
-        contractMapper.updateBalance(contractId, BigDecimal.ZERO, newTotalInterestPaid);
+        // 3. Update contract: outstanding = 0 (no additional future interest charged)
+        contractMapper.updateBalance(contractId, BigDecimal.ZERO, contract.getTotalInterestPaid());
 
         // 4. Transition to EARLY_REPAID
         contractMapper.updateStatus(contractId, LoanStatus.EARLY_REPAID.name());
@@ -156,8 +159,8 @@ public class RepaymentService {
     }
 
     private String generateTransactionNo() {
-        long timestamp = System.currentTimeMillis();
-        int random = (int) (Math.random() * 10000);
-        return String.format("TXN%d%04d", timestamp, random);
+        String datePart = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
+        String uuid = UUID.randomUUID().toString().replace("-", "").substring(0, 10).toUpperCase();
+        return String.format("TXN%s%s", datePart, uuid);
     }
 }

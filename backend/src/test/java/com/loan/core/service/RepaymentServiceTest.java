@@ -130,16 +130,18 @@ class RepaymentServiceTest {
     }
 
     @Test
-    @DisplayName("조기상환: 전액 + EARLY_REPAID + 거래 기록")
+    @DisplayName("조기상환: 잔액 전액 + EARLY_REPAID + 거래 기록 (미래 이자 미포함)")
     void earlyRepaySuccess() {
         LoanContract contract = activeContract(new BigDecimal("5000000"));
         RepaymentSchedule s1 = RepaymentSchedule.builder()
                 .id(1L).status(RepaymentStatus.SCHEDULED)
+                .principalAmount(new BigDecimal("500000"))
                 .interestAmount(new BigDecimal("20000"))
                 .totalAmount(new BigDecimal("520000"))
                 .build();
         RepaymentSchedule s2 = RepaymentSchedule.builder()
                 .id(2L).status(RepaymentStatus.SCHEDULED)
+                .principalAmount(new BigDecimal("500000"))
                 .interestAmount(new BigDecimal("15000"))
                 .totalAmount(new BigDecimal("515000"))
                 .build();
@@ -159,6 +161,8 @@ class RepaymentServiceTest {
         assertEquals(0, tx.getBalanceAfter().compareTo(BigDecimal.ZERO));
         verify(contractMapper).updateStatus(1L, LoanStatus.EARLY_REPAID.name());
         verify(scheduleMapper, times(2)).updateStatus(any(), eq("PAID"), any(), any());
+        // 미래 이자를 합산하지 않으므로 totalInterestPaid는 기존 값(ZERO) 그대로
+        verify(contractMapper).updateBalance(eq(1L), eq(BigDecimal.ZERO), eq(BigDecimal.ZERO));
     }
 
     @Test

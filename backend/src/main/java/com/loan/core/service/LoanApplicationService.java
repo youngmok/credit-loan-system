@@ -13,24 +13,27 @@ import com.loan.core.mapper.StatusHistoryMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class LoanApplicationService {
 
     private final LoanApplicationMapper applicationMapper;
     private final CustomerMapper customerMapper;
     private final StatusHistoryMapper statusHistoryMapper;
-    private static final AtomicInteger APP_SEQ = new AtomicInteger(0);
+    private static final AtomicLong APP_SEQ = new AtomicLong(System.nanoTime() % 10000);
 
+    @Transactional
     public LoanApplication createApplication(LoanApplicationCreateRequest request) {
         log.info("Creating loan application: customerId={}, amount={}", request.getCustomerId(), request.getRequestedAmount());
 
@@ -66,6 +69,7 @@ public class LoanApplicationService {
         return application;
     }
 
+    @Transactional
     public LoanApplication submitApplication(Long id) {
         log.info("Submitting loan application: id={}", id);
 
@@ -73,7 +77,6 @@ public class LoanApplicationService {
         validateStatusTransition(application.getStatus(), LoanStatus.APPLIED);
 
         LoanStatus fromStatus = application.getStatus();
-        applicationMapper.updateStatus(id, LoanStatus.APPLIED.name());
         application.setStatus(LoanStatus.APPLIED);
         application.setAppliedAt(LocalDateTime.now());
         applicationMapper.update(application);
@@ -121,7 +124,7 @@ public class LoanApplicationService {
 
     private String generateApplicationNo() {
         String datePart = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        int seq = APP_SEQ.incrementAndGet() % 10000;
+        long seq = APP_SEQ.incrementAndGet() % 10000;
         return String.format("APP%s%04d", datePart, seq);
     }
 }

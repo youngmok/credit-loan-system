@@ -8,21 +8,24 @@ import com.loan.core.mapper.CustomerMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Service
 @Slf4j
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class CustomerService {
 
     private final CustomerMapper customerMapper;
-    private static final AtomicInteger CUSTOMER_SEQ = new AtomicInteger(0);
+    private static final AtomicLong CUSTOMER_SEQ = new AtomicLong(System.nanoTime() % 10000);
 
+    @Transactional
     public Customer createCustomer(CustomerCreateRequest request) {
         log.info("Creating customer: name={}", request.getName());
 
@@ -61,7 +64,7 @@ public class CustomerService {
 
     private String generateCustomerNo() {
         String datePart = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
-        int seq = CUSTOMER_SEQ.incrementAndGet() % 10000;
+        long seq = CUSTOMER_SEQ.incrementAndGet() % 10000;
         return String.format("CUS%s%04d", datePart, seq);
     }
 }

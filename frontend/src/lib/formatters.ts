@@ -50,7 +50,7 @@ export function formatDateTime(date: string): string {
 export function getLoanStatusLabel(status: string): string {
   const labels: Record<string, string> = {
     DRAFT: "임시저장",
-    APPLIED: "심사대기",
+    APPLIED: "신청완료",
     REVIEWING: "심사중",
     APPROVED: "승인",
     REJECTED: "거절",
